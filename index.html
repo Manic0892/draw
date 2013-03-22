@@ -1,0 +1,187 @@
+<html>
+	<head>
+		<script src='http://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js'></script>
+		<script src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.10.2/jquery-ui.min.js"></script>
+		<script src='./kinetic-v4.3.1.js'></script>
+		
+		<script src='./spectrum/spectrum.js'></script>
+		<link rel='stylesheet' href='./spectrum/spectrum.css' />
+		<link rel='stylesheet' href='./jquery-css/smoothness/jquery-ui-1.10.2.custom.min.css' />
+		
+		<script type='text/javascript'>
+			var stage;
+			var mainLayer;
+			var tempLayer;
+			var evtLayer;
+			
+			var tracking = false;
+			
+			var pointArray = [];
+			
+			window.onload = function(){
+				stage = new Kinetic.Stage({
+					container: 'stage',
+					height:500,
+					width:850
+				});
+				mainLayer = new Kinetic.Layer();
+				tempLayer = new Kinetic.Layer();
+				evtLayer = new Kinetic.Layer();
+				stage.add(mainLayer);
+				stage.add(tempLayer);
+				stage.add(evtLayer);
+				
+				var newShape = new Kinetic.Rect({
+					x: 0,
+					y: 0,
+					width: stage.getWidth(),
+					height: stage.getHeight(),
+				});
+				
+				newShape.on('mousedown', function() {
+					tracking = true;
+				});
+				
+				newShape.on('mousemove', function() {
+					tempLayer.removeChildren();
+					var pointVal = $('#px').val();
+					var shade = $('#colorPicker').spectrum('get').toRgbString();
+					var mousePos = stage.getMousePosition();
+					var cursor = new Kinetic.Circle({
+						radius: pointVal/2,
+						fill:shade,
+						x:mousePos.x,
+						y:mousePos.y
+					});
+					tempLayer.add(cursor);
+					if (tracking) {
+						pointArray.push(mousePos.x);
+						pointArray.push(mousePos.y);
+						var newShape = new Kinetic.Line({
+							points: pointArray,
+							stroke: shade,
+							strokeWidth: pointVal,
+							lineCap: 'round',
+							lineJoin: 'round'
+						});
+						tempLayer.add(newShape);
+					}
+					tempLayer.draw();
+				});
+				
+				newShape.on('mouseup', function() {
+					tempLayer.removeChildren();
+					tracking = false;
+					var mousePos = stage.getMousePosition();
+					pointArray.push(mousePos.x);
+					pointArray.push(mousePos.y);
+					var pointVal = $('#px').val();
+					var shade = $('#colorPicker').spectrum('get').toRgbString();
+					var newShape;
+					if (pointArray.length == 2) {
+						newShape = new Kinetic.Circle({
+							radius: pointVal/2,
+							fill:shade,
+							x:mousePos.x,
+							y:mousePos.y
+						});
+					}
+					else {
+						newShape = new Kinetic.Line({
+							points: pointArray,
+							stroke: shade,
+							strokeWidth: pointVal,
+							lineCap: 'round',
+							lineJoin: 'round'
+						});
+					}
+					mainLayer.add(newShape);
+					stage.draw();
+					pointArray = [];
+				});
+				
+				evtLayer.add(newShape);
+				stage.draw();
+				$('#pointSlider').slider({
+					value:10,
+					slide: function( event, ui ) {
+						$( "#px" ).val( ui.value );
+					},
+					min:0,
+					max:750
+				});
+				$("#colorPicker").spectrum({
+					color: 'blue',
+					showInput: true,
+					showAlpha: true
+				});
+				$( "#px" ).val( $('#pointSlider').slider('value') );
+				$( '#px' ).change(function() {
+					if ($('#px').val() < 1)
+						$('#px').val(1);
+					if ($('#px').val() > 750)
+						$('#px').val(750);
+					$('#pointSlider').slider('value', $('#px').val());
+				});
+			};
+		</script>
+		
+		<style type='text/css'>
+			body {
+				-webkit-user-select: none;
+				-moz-user-select: -moz-none;
+				-webkit-user-select: none;
+				-ms-user-select: none;
+				user-select: none;
+				font-family:Arial;
+				font-size:12px;
+			}
+			#stage {
+				width:850;
+				height: 500;
+				margin-left:auto;
+				margin-right:auto;
+				border:1px solid black;
+				cursor:none;
+			}
+			#wrapper{
+				width:850;
+				margin-left:auto;
+				margin-right:auto;
+			}
+			.colorInput {
+				height:30;
+				font-size:25;
+			}
+			#inputHolder {
+				padding-top:5px;
+			}
+			#pointSlider {
+				
+			}
+			#pointSliderHolder {
+				width:275px;
+				float:right;
+			}
+			#pointSliderInnerHolder {
+				padding-top:5px;
+				width:200px;
+				float:right;
+			}
+			#colorPicker {
+				float:left;
+			}
+			#px {
+				/*width:20px;*/
+				border:0px;
+				text-align:right;
+			}
+		</style>
+	</head>
+	<body>
+		<div id='wrapper'>
+			<div id='stage'></div>
+			<div id='inputHolder'><input type='text' id="colorPicker" /><div id='pointSliderHolder'><input type='text' maxLength=3 size=1 id='px' /> px <div id='pointSliderInnerHolder'><div id='pointSlider'></div></div></div></div>
+		</div>
+	</body>
+</html>
