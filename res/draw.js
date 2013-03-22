@@ -96,7 +96,7 @@ window.onload = function(){
 		slide: function( event, ui ) {
 			$( "#px" ).val( ui.value );
 		},
-		min:0,
+		min:1,
 		max:750
 	});
 	$("#colorPicker").spectrum({
